@@ -20,9 +20,9 @@ selected_year = st.sidebar.selectbox('Year', list(reversed(range(1990,2020))))
 @st.cache(suppress_st_warning=True)
 def load_data(year):
     url = "https://www.pro-football-reference.com/years/" + str(year) + "/rushing.htm"
-    html = pd.read_html(url, header = 1)
+    html = pd.read_html(url, header=1)
     df = html[0]
-    raw = df.drop(df[df.Age == 'Age'].index) # Deletes repeating headers in content
+    raw = df.drop(df[df.Age == 'Age'].index)  # Deletes repeating headers in content
     raw = raw.fillna(0)
     player_stats = raw.drop(['Rk'], axis=1)
     return player_stats
