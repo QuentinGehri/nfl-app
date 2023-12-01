@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import lxml
 
 st.title('NFL Football Stats (Rushing) Explorer')
 
