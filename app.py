@@ -38,8 +38,12 @@ age_nom_joueur = pd.DataFrame({
     'Age': player_stats['Age'],
 })
 
-
 st.scatter_chart(data=age_nom_joueur, x='Joueur', y='Age', use_container_width=True)
+
+selected_player = st.selectbox('Sélectionnez un joueur', age_nom_joueur['Joueur'])
+st.dataframe(player_stats[player_stats['Player'] == selected_player])
+
+
 
 
 
