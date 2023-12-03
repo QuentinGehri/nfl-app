@@ -21,7 +21,7 @@ def load_data_by_player(nom_joueur, index):
     nom_raccourci = ""
     #for i in range(position_espace + 1, position_espace + 5):
     i = position_espace + 1
-    while (len(nom_raccourci) != 4)
+    while (len(nom_raccourci) != 4):
         if index[0][i] != "'":
             nom_raccourci += index[0][i]
         if i == position_espace + 1:
