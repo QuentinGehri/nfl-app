@@ -19,10 +19,14 @@ def load_data_by_player(nom_joueur, index):
     st.markdown(index[0])
     initiale = ""
     nom_raccourci = ""
-    for i in range(position_espace + 1, position_espace + 5):
-        nom_raccourci += index[0][i]
+    #for i in range(position_espace + 1, position_espace + 5):
+    i = position_espace + 1
+    while (len(nom_raccourci) != 4)
+        if index[0][i] != "'":
+            nom_raccourci += index[0][i]
         if i == position_espace + 1:
             initiale = index[0][i]
+        i+=1
     for i in range(2):
         if index[0][i] == ".":
             nom_raccourci += index[0][i+1]
