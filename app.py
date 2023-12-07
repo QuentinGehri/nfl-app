@@ -1,28 +1,45 @@
+# Imports
 import streamlit as st
 import pandas as pd
 
+# Constantes
+NB_TOUR_POUR_NOM_FAMILLE = 4
 
+
+# Procédures et fonctions
 def load_data(year):
     url = "https://www.pro-football-reference.com/years/" + str(year) + "/passing.htm"
     html = pd.read_html(url, header=0)
     df = html[0]
-    raw = df.drop(df[df.Age == 'Age'].index)  # Deletes repeating headers in content
-    raw = raw.fillna(0)
-    stat_joueur = raw.drop(['Rk'], axis=1)
-    return stat_joueur
+    # Supprime les lignes répétitives
+    df = df[~df.duplicated()].reset_index(drop=True)
+    # Supprime la colonne 'Rk'
+    df = df.drop(['Rk'], axis=1)
+    player_to_remove = 'Player'
+    df = df[df['Player'] != player_to_remove]
+    # Réinitialiser l'index après la suppression
+    df.reset_index(drop=True, inplace=True)
+    # Remplace les valeurs NaN par 0
+    df = df.fillna(0)
+    return df
 
 
-def load_data_by_player(nom_joueur, index):
+def load_data_by_player(index):
     # https://www.pro-football-reference.com/players/H/HoweSa00.htm URL du WebScrapping (avec par exemple Dak Prescott)
     position_espace = index[0].find(" ")
     position_espace = int(position_espace)
     st.markdown(index[0])
     initiale = ""
     nom_raccourci = ""
-    for i in range(position_espace + 1, position_espace + 5):
-        nom_raccourci += index[0][i]
-        if i == position_espace + 1:
-            initiale = index[0][i]
+    i = position_espace + 1
+    nb_tour = 0
+    while nb_tour < NB_TOUR_POUR_NOM_FAMILLE:
+        if index[0][i] != "'":
+            nom_raccourci += index[0][i]
+            if i == position_espace + 1:
+                initiale = index[0][i]
+            nb_tour += 1
+        i += 1
     for i in range(2):
         if index[0][i] == ".":
             nom_raccourci += index[0][i+1]
@@ -30,12 +47,15 @@ def load_data_by_player(nom_joueur, index):
             nom_raccourci += index[0][i]
     url = "https://www.pro-football-reference.com/players/" + str(initiale) + "/" + str(nom_raccourci) + "00.htm"
     st.markdown(url)
-    html = pd.read_html(url, header=0)
-    df = html[0]
-    raw = df.drop(df.index[0])
-    raw = raw.fillna(0)
-    stat_joueur = raw
-    return stat_joueur
+    # Spécifier header=1 pour utiliser la première ligne comme en-tête
+    # Lire le HTML avec header=1
+    df = pd.read_html(url, header=1)[0]
+    # Remplacer les valeurs NaN par 0
+    df = df.fillna(0)
+    # Remplacer le nom de la 3ᵉ colonne par un nouveau nom
+    new_column_name = "Lieu"
+    df.rename(columns={df.columns[2]: new_column_name}, inplace=True)
+    return df
 
 
 def show_tableau_entier(player_stats):
@@ -46,16 +66,34 @@ def show_tableau_entier(player_stats):
 
 
 def show_graphique(player_stats):
-    st.title("Graphique à Points")
+    # Supposons que player_stats['QBrec'] contienne une chaîne telle que '7-5-0'
+    qbrec_str = player_stats['QBrec']
+    liste_pourcentage_victoire = []
+    # Parcourir la liste
+    for resultat in qbrec_str:
+        # Vérifier si qbrec_str n'est pas égal à 0 (non vide)
+        if resultat != 0 and resultat != 'QBrec':
+            nombres = [int(nombre) for nombre in resultat.split('-')]
+            tot_match = sum(nombres)
+            # Vérifier si tot_match n'est pas égal à 0 pour éviter une division par zéro
+            if tot_match != 0:
+                pourcentage_victoire = nombres[0] / tot_match
+                pourcentage_victoire *= 100
+            else:
+                pourcentage_victoire = 0
+        else:
+            pourcentage_victoire = 0
+        liste_pourcentage_victoire.append(pourcentage_victoire)
 
     # Créer un DataFrame avec les colonnes nécessaires
     age_nom_joueur = pd.DataFrame({
         'Joueur': player_stats['Player'],
-        'Age': player_stats['Age'],
+        'Pourcentage': liste_pourcentage_victoire,
     })
 
     # Afficher le graphique à points
-    st.scatter_chart(data=age_nom_joueur, x='Joueur', y='Age', use_container_width=True)
+    st.title("Graphique representant le pourcentage de victoire de chaque joueur")
+    st.bar_chart(data=age_nom_joueur, x='Joueur', y='Pourcentage', use_container_width=True)
 
 
 def show_details(player_stats):
@@ -72,20 +110,17 @@ def show_details(player_stats):
 
     selected_player_index = age_nom_joueur['Joueur'].tolist().index(selected_player)
 
-
     # Afficher les détails du joueur sélectionné
     if selected_player:
         selected_player_data = player_stats[player_stats['Player'] == selected_player]
+        st.dataframe(selected_player_data)
         index = age_nom_joueur.loc[selected_player_index]
-        stat_par_match = load_data_by_player(selected_player_data['Player'], index)
+        stat_par_match = load_data_by_player(index)
         st.dataframe(selected_player_data)
         st.dataframe(stat_par_match)
 
 
-def show_stats_semaine_par_semaine():
-    pass
-
-
+# Procédure main()
 def main():
     st.title('NFL Football Stats (Rushing) Explorer')
 
@@ -115,5 +150,6 @@ def main():
         show_details(player_stats)
 
 
+# Appel de la procédure main()
 if __name__ == "__main__":
     main()
