@@ -12,30 +12,33 @@ def load_data(year):
     return stat_joueur
 
 
-def load_data_by_player(nom_joueur, index):
+def load_data_by_player(index):
     # https://www.pro-football-reference.com/players/H/HoweSa00.htm URL du WebScrapping (avec par exemple Dak Prescott)
-    position_espace = index[0].find(" ")
-    position_espace = int(position_espace)
-    st.markdown(index[0])
-    initiale = ""
-    nom_raccourci = ""
-    for i in range(position_espace + 1, position_espace + 5):
-        nom_raccourci += index[0][i]
-        if i == position_espace + 1:
-            initiale = index[0][i]
-    for i in range(2):
-        if index[0][i] == ".":
-            nom_raccourci += index[0][i+1]
-        else:
+    try:
+        position_espace = index[0].find(" ")
+        position_espace = int(position_espace)
+        st.markdown(index[0])
+        initiale = ""
+        nom_raccourci = ""
+        for i in range(position_espace + 1, position_espace + 5):
             nom_raccourci += index[0][i]
-    url = "https://www.pro-football-reference.com/players/" + str(initiale) + "/" + str(nom_raccourci) + "00.htm"
-    st.markdown(url)
-    html = pd.read_html(url, header=0)
-    df = html[0]
-    raw = df.drop(df.index[0])
-    raw = raw.fillna(0)
-    stat_joueur = raw
-    return stat_joueur
+            if i == position_espace + 1:
+                initiale = index[0][i]
+        for i in range(2):
+            if index[0][i] == ".":
+                nom_raccourci += index[0][i + 1]
+            else:
+                nom_raccourci += index[0][i]
+        url = "https://www.pro-football-reference.com/players/" + str(initiale) + "/" + str(nom_raccourci) + "00.htm"
+        st.markdown(url)
+        html = pd.read_html(url, header=0)
+        df = html[0]
+        raw = df.drop(df.index[0])
+        raw = raw.fillna(0)
+        stat_joueur = raw
+        return stat_joueur
+    except NameError:
+        return None
 
 
 def show_tableau_entier(player_stats):
@@ -72,18 +75,16 @@ def show_details(player_stats):
 
     selected_player_index = age_nom_joueur['Joueur'].tolist().index(selected_player)
 
-
     # Afficher les détails du joueur sélectionné
     if selected_player:
         selected_player_data = player_stats[player_stats['Player'] == selected_player]
         index = age_nom_joueur.loc[selected_player_index]
-        stat_par_match = load_data_by_player(selected_player_data['Player'], index)
-        st.dataframe(selected_player_data)
-        st.dataframe(stat_par_match)
-
-
-def show_stats_semaine_par_semaine():
-    pass
+        stat_par_match = load_data_by_player(index)
+        if stat_par_match is None:
+            st.markdown("La recupération des données a rencontrer un problème")
+        else:
+            st.dataframe(selected_player_data)
+            st.dataframe(stat_par_match)
 
 
 def main():
