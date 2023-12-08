@@ -25,7 +25,7 @@ def load_data(year):
 
 
 def load_data_by_player(index):
-    # https://www.pro-football-reference.com/players/H/HoweSa00.htm URL du WebScrapping (avec par exemple Dak Prescott)
+    # https://www.pro-football-reference.com/players/H/HoweSa00.htm URL du WebScrapping (avec par exemple Sam Howell)
     position_espace = index[0].find(" ")
     position_espace = int(position_espace)
     st.markdown(index[0])
@@ -113,7 +113,6 @@ def show_details(player_stats):
     # Afficher les détails du joueur sélectionné
     if selected_player:
         selected_player_data = player_stats[player_stats['Player'] == selected_player]
-        st.dataframe(selected_player_data)
         index = age_nom_joueur.loc[selected_player_index]
         stat_par_match = load_data_by_player(index)
         st.dataframe(selected_player_data)
